@@ -1,0 +1,25 @@
+{
+  "name": "IMOBot",
+  "version": "1.0.0",
+  "description": "7th Cavalry's IMO Discord Bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/7Cav/IMOBot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/7Cav/IMOBot/issues"
+  },
+  "homepage": "https://github.com/7Cav/IMOBot#readme",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "discord.js": "^11.5.1",
+    "node": "^13.8.0"
+  }
+}
