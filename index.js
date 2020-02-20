@@ -9,7 +9,7 @@ const Discord = require('discord.js');
 const config = require('./config.json');
 const fs = require("fs")
 const bot = new Discord.Client();
-const botLogin = config.LoginToken;
+const botLogin = config.Login;
 
 // Axios and Cav API
 const AUTH_TOKEN = config.CavAPIToken;
@@ -24,11 +24,15 @@ const instance = axios.create({
     }
 })
 
-// This is supposed to return active user data, it responds with [Object, object].
-// instance.get("https://api.7cav.us/v1/users/active")
-//     .then(function (response) {
-//     console.log(response.data);
-//     })
+// Return information from the API and put it into ./data.json
+// GET: /users/active
+instance({
+    method: "GET",
+    url: "https://api.7cav.us/v1/users/active",
+    responseType: "stream"
+}).then(function (response) {
+    response.data.pipe(fs.createWriteStream(JSON.stringify()));
+})
 
 //When the bot is ready.
 bot.on('ready', () => {
