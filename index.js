@@ -106,40 +106,22 @@ bot.on('ready', () => {
     function doSync() {
         let server = bot.guilds.get('discordServerID');
         let discordProfile = server.members.get(user.discord_id);
-        // Assign Enlisted Roles
+        // Assign Billet Roles:
         users.forEach(user => {
             let shortRank = user.rank_shorthand;
             if (Enlisted.includes(shortRank)) {
                 if (!discordProfile.Roles.includes('Enlisted')) {
                     discordProfile.addRole('Enlisted');
                 }
-            }
-        });
-
-        // Assign NCO roles
-        users.forEach(user => {
-            let shortRank = user.rank_shorthand;
-            if (NCO.includes(shortRank)) {
+            } else if (NCO.includes(shortRank)) {
                 if (!discordProfile.Roles.includes('NCO')) {
                     discordProfile.addRole('NCO');
                 }
-            }
-        });
-
-        // Assign Officer
-        users.forEach(user => {
-            let shortRank = user.rank_shorthand;
-            if (Officer.includes(shortRank)) {
+            } else if (Officer.includes(shortRank)) {
                 if (!discordProfile.Roles.includes('Officer')) {
                     discordProfile.addRole('Officer');
                 }
-            }
-        });
-
-        // Assign Active Member Role
-        users.forEach(user => {
-            let shortRank = user.rank_shorthand;
-            if (Officer.includes(shortRank)) {
+            } else if (user.status === "active") {
                 if (!discordProfile.Roles.includes('Active')) {
                     discordProfile.addRole('Active');
                 }
