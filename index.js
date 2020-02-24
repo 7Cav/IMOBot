@@ -36,38 +36,116 @@ function getAPI() {
         responseType: "stream"
     }).then(function (response) {
         response.data.pipe(fs.createWriteStream(JSON.stringify()));
- })
+    })
 }
+
+// Simulated API response:
+let userCache = [
+    {
+        "user_id": 4986,
+        "milpac_id": 2808,
+        "real_name": "William Vex",
+        "username": "Vex.W",
+        "uniform_url": "https://7cav.us/data/pixelexit/rosters/uniforms/2/2808.jpg",
+        "rank": "Chief Warrant Officer 2",
+        "rank_id": 15,
+        "rank_image_url": "https://7cav.us/data/pixelexit/rosters/ranks/0/15.jpg",
+        "rank_shorthand": "CW2",
+        "status": "active",
+        "primary_position": "S6 - Developer",
+        "secondary_positions": [
+            {
+                "position_id": 257,
+                "position_title": "WAG Administrator",
+                "possible_secondary": 1
+            },
+            {
+                "position_id": 590,
+                "position_title": "S6 - Game Clerk",
+                "possible_secondary": 1
+            }
+        ],
+        "bio": "",
+        "join_date": "2018-11-12 00:00:00",
+        "promotion_date": "2020-02-23 00:00:00",
+        "discord_id": "201893080805146624"
+    },
+    {
+        "user_id": 13,
+        "milpac_id": 263,
+        "real_name": "Adam Jarvis",
+        "username": "Jarvis.A",
+        "uniform_url": "https://7cav.us/data/pixelexit/rosters/uniforms/0/263.jpg",
+        "rank": "Colonel",
+        "rank_id": 6,
+        "rank_image_url": "https://7cav.us/data/pixelexit/rosters/ranks/0/6.jpg",
+        "rank_shorthand": "COL",
+        "status": "active",
+        "primary_position": "S6 - Officer In Charge",
+        "secondary_positions": [],
+        "bio": "",
+        "join_date": "2012-05-18 00:00:00",
+        "promotion_date": "2019-02-20 00:00:00",
+        "discord_id": "104461066662060032"
+    }
+];
+
+let users = userCache; // in future this would be a db call
 // ******* END OF API STUFF *******
+
+// Generalize Shorthand rankings:
+var Enlisted = ["RCT", "PVT", "PFC", "SPC"];
+var NCO = ["CPL", "SGT", "SSG", "SFC", "MSG", "1SG", "SGM", "CSM", "WO1", "CW2", "CW3", "CW4", "CW5"];
+var Officer = ["2LT", "1LT", "CPT", "MAJ", "LTC", "COL", "BG", "MG", "LTG", "GEN", "GOA"]; // General staff grouped into Officers.
+//var GeneralStaff = ["BG", "MG", "LTG", "GEN", "GOA"]; // General staff shall be assigned manually.
 
 //When the bot is ready.
 bot.on('ready', () => {
     console.log("Connected as " + bot.user.tag);
 
-    // This is inside 'ready' because discord api can only be interacted with inside an event handler...
-    // Role Assignment Concept:
-    let userCache = [
-        {
-            discord_id: "201893080805146624",
-            username: "Vex"
-        },
-        {
-            discord_id: "104461066662060032",
-            username: "Jarvis"
-        }
-    ];
-    
     function doSync() {
-        let users = userCache; // in future this would be a db call
         let server = bot.guilds.get('discordServerID');
-     
+        let discordProfile = server.members.get(user.discord_id);
+        // Assign Enlisted Roles
         users.forEach(user => {
-            let discordProfile = server.members.get(user.discord_id);
-            discordProfile.addRole('roleID'); // genstaff role
-        })
-    }
+            let shortRank = user.rank_shorthand;
+            if (Enlisted.includes(shortRank)) {
+                if (!discordProfile.Roles.includes('Enlisted')) {
+                    discordProfile.addRole('Enlisted');
+                }
+            }
+        });
 
-    doSync();
+        // Assign NCO roles
+        users.forEach(user => {
+            let shortRank = user.rank_shorthand;
+            if (NCO.includes(shortRank)) {
+                if (!discordProfile.Roles.includes('NCO')) {
+                    discordProfile.addRole('NCO');
+                }
+            }
+        });
+
+        // Assign Officer
+        users.forEach(user => {
+            let shortRank = user.rank_shorthand;
+            if (Officer.includes(shortRank)) {
+                if (!discordProfile.Roles.includes('Officer')) {
+                    discordProfile.addRole('Officer');
+                }
+            }
+        });
+
+        // Assign Active Member Role
+        users.forEach(user => {
+            let shortRank = user.rank_shorthand;
+            if (Officer.includes(shortRank)) {
+                if (!discordProfile.Roles.includes('Active')) {
+                    discordProfile.addRole('Active');
+                }
+            }
+        });
+    }
 });
 
 // Crash reporting
@@ -77,10 +155,10 @@ bot.on('error', error => console.error(error));
 bot.on('warn', info => console.error(info));
 
 // Message Eventhandler
-bot.on ("message", msg => {
+bot.on("message", msg => {
 
     // Quick command to make sure the bot works and hasen't crashed.
-    if(msg.content.toLowerCase().includes("!bot")) {
+    if (msg.content.toLowerCase().includes("!bot")) {
         msg.reply("I'm here!");
     };
 });
