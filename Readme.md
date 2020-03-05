@@ -3,7 +3,7 @@
 
 # How to run:
 
-1. fill in config.json
+1. fill in config/main.json
 2. npm run start
 
 # Features:
@@ -11,4 +11,7 @@
   * Configurable Tokens
   * Configurable Billets
   * Configurable Ranks
-  
+
+# Chat Commands:
+  * !Milpac <DiscordUser>
+    Desc: Returns a link to specified user's Milpac.

@@ -6,7 +6,9 @@
 
 // Dependencies
 const Discord = require('discord.js');
-const config = require('./config.json');
+const config = require('config/main.json');
+const billet = require('config/billet.json');
+const rank = require('config/rank.json');
 const fs = require("fs");
 const bot = new Discord.Client();
 const botLogin = config.Login;
@@ -99,15 +101,15 @@ let users = userCache; // in future this would be a db call
 // ******* END OF API STUFF *******
 
 // Generalize Shorthand rankings:
-var Enlisted = config.Ranks.Enlisted;
-var NCO = config.Ranks.NCO;
-var Officer = config.Ranks.Officer;
+var Enlisted = rank.Ranks.Enlisted;
+var NCO = rank.Ranks.NCO;
+var Officer = rank.Ranks.Officer;
 
 //When the bot is ready.
 bot.on('ready', () => {
     console.log("Connected as " + bot.user.tag);
 
-    
+    // doSync();
 });
 
 // Message Eventhandler

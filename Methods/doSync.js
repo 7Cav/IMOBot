@@ -1,11 +1,11 @@
 const Discord = require('discord.js');
 const bot = new Discord.Client();
-const config = require('../config.json');
+const config = require('../config/main.json');
 
 module.exports.run = async (API) => {
     let server = bot.guilds.get('discordServerID');
     let discordProfile = server.members.get(user.discord_id);
-    var users
+    var users = API;
     // Assign Billet Roles:
     users.forEach(user => {
 
