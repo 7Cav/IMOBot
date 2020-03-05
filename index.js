@@ -8,9 +8,14 @@
 const Discord = require('discord.js');
 const config = require('./config.json');
 const fs = require("fs");
-let data = require('./data.json');
 const bot = new Discord.Client();
 const botLogin = config.Login;
+
+// Crash reporting
+bot.on('disconnect', () => console.error('Connection Lost...'));
+bot.on('reconnecting', () => console.log('Attempting to reconnect....'));
+bot.on('error', error => console.error(error));
+bot.on('warn', info => console.error(info));
 
 // ******* START OF API STUFF *******
 // Axios and Cav API
@@ -94,47 +99,16 @@ let users = userCache; // in future this would be a db call
 // ******* END OF API STUFF *******
 
 // Generalize Shorthand rankings:
-var Enlisted = ["RCT", "PVT", "PFC", "SPC"];
-var NCO = ["CPL", "SGT", "SSG", "SFC", "MSG", "1SG", "SGM", "CSM", "WO1", "CW2", "CW3", "CW4", "CW5"];
-var Officer = ["2LT", "1LT", "CPT", "MAJ", "LTC", "COL", "BG", "MG", "LTG", "GEN", "GOA"]; // General staff grouped into Officers.
-//var GeneralStaff = ["BG", "MG", "LTG", "GEN", "GOA"]; // General staff shall be assigned manually.
+var Enlisted = config.Ranks.Enlisted;
+var NCO = config.Ranks.NCO;
+var Officer = config.Ranks.Officer;
 
 //When the bot is ready.
 bot.on('ready', () => {
     console.log("Connected as " + bot.user.tag);
 
-    function doSync() {
-        let server = bot.guilds.get('discordServerID');
-        let discordProfile = server.members.get(user.discord_id);
-        // Assign Billet Roles:
-        users.forEach(user => {
-            let shortRank = user.rank_shorthand;
-            if (Enlisted.includes(shortRank)) {
-                if (!discordProfile.Roles.includes('Enlisted')) {
-                    discordProfile.addRole('Enlisted');
-                }
-            } else if (NCO.includes(shortRank)) {
-                if (!discordProfile.Roles.includes('NCO')) {
-                    discordProfile.addRole('NCO');
-                }
-            } else if (Officer.includes(shortRank)) {
-                if (!discordProfile.Roles.includes('Officer')) {
-                    discordProfile.addRole('Officer');
-                }
-            } else if (user.status === "active") {
-                if (!discordProfile.Roles.includes('Active')) {
-                    discordProfile.addRole('Active');
-                }
-            }
-        });
-    }
+    
 });
-
-// Crash reporting
-bot.on('disconnect', () => console.error('Connection Lost...'));
-bot.on('reconnecting', () => console.log('Attempting to reconnect....'));
-bot.on('error', error => console.error(error));
-bot.on('warn', info => console.error(info));
 
 // Message Eventhandler
 bot.on("message", msg => {

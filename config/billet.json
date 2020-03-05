@@ -1,0 +1,14 @@
+{
+    "PrimaryBillets": {
+        "S1": "S1 - Officer In Charge",
+        "S2": ["S2 - NCO In Charge", "S2 - Investigator"],
+        "S3": ["S3 - NCO In Charge", "S3 - Arma 3 TCS Lead"],
+        "S6": ["S6 - Officer In Charge", "S6 - Executive Officer", "S6 - NCOIC", "S6 - Developer", "S6 - IMO Assistant"],
+        "MP": ["Military Police - Officer In Charge", "Military Police - NCO In Charge"]
+    },
+    "SecondaryBillets": {
+        "S1": ["S1 - Milpacs Clerk", "S1 - GFX Lead", "S1 - GFX Clerk", "S1 - Executive Officer", "S1 - Operational Clerk", "S1 - GFX NCO In Charge", "S1 - Operational Clerk Lead", "S1 - HQ Lead", "S1 - Citation Clerk"],
+        "S2": ["S2 - Senior Investigator", "S2 - Investigator", "S2 - Investigator in Training"],
+        "S3": ["S3 - Arma 3 Pub Operations Staff", ""]
+    }
+}

@@ -7,5 +7,8 @@
 2. npm run start
 
 # Features:
-  * Configurable
   * Connected to 7th Cav API
+  * Configurable Tokens
+  * Configurable Billets
+  * Configurable Ranks
+  
