@@ -1,5 +1,7 @@
 {
         "BotToken": "",
         "CavAPIToken": "",
-        "Login": ""
+        "Login": "",
+        "DiscordServerID": "",
+        "JoinChannelID": ""
 }
