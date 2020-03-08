@@ -12,8 +12,7 @@ const rank = require('config/rank.json');
 const fs = require("fs");
 const bot = new Discord.Client();
 const botLogin = config.Login;
-import { doSync } from './Methods/doSync.js';
-import { joinSync } from './Methods/joinSync.js';
+let Sync = require('./Methods/doSync.js');
 
 // Crash reporting
 bot.on('disconnect', () => console.error('Connection Lost...'));
@@ -22,7 +21,7 @@ bot.on('error', error => console.error(error));
 bot.on('warn', info => console.error(info));
 
 // Chat Commands:
-bot.commands = new Discord.Collection();
+bot.commands = new Discord.Collection(); 
 fs.readdir('./ChatCmds/', (err, files) => {
     if(err) console.error(err);
 
@@ -140,7 +139,7 @@ var Officer = rank.Ranks.Officer;
 bot.on('ready', () => {
     console.log("Connected as " + bot.user.tag);
 
-    doSync();
+    Sync.doSync(instance);
 });
 
 // Message Eventhandler
@@ -152,7 +151,8 @@ bot.on("message", msg => {
 });
 
 bot.on("guildMemberAdd", member => {
-    joinSync();
+    var id = member.id;
+    Sync.joinSync(instance, id);
 });
 
 //Bot login
