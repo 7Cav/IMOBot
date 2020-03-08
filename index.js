@@ -6,13 +6,17 @@
 
 // Dependencies
 const Discord = require('discord.js');
-const config = require('config/main.json');
-const billet = require('config/billet.json');
-const rank = require('config/rank.json');
+var config = require('./config/main.json');
+var billet = require('./config/billet.json');
+var rank = require('./config/rank.json');
 const fs = require("fs");
 const bot = new Discord.Client();
 const botLogin = config.Login;
-let Sync = require('./Methods/doSync.js');
+var doSync = require('./Methods/doSync');
+var joinSync = require('./Methods/joinSync');
+
+var memberList = () => {bot.guilds.get(`${config.DiscordServerID}`).members};
+console.log(memberList);
 
 // Crash reporting
 bot.on('disconnect', () => console.error('Connection Lost...'));
@@ -65,16 +69,6 @@ const instance = axios.create({
 
 // Concept API call to get updated information from API.
 // Return information from the API and put it into ./data.json
-function getAPI() {
-    // GET: /users/active
-    instance({
-        method: "GET",
-        url: "https://api.7cav.us/v1/users/active",
-        responseType: "stream"
-    }).then(function (response) {
-        response.data.pipe(fs.createWriteStream(JSON.stringify()));
-    })
-}
 
 // Simulated API response:
 let userCache = [
@@ -139,7 +133,7 @@ var Officer = rank.Ranks.Officer;
 bot.on('ready', () => {
     console.log("Connected as " + bot.user.tag);
 
-    Sync.doSync(instance);
+    doSync.run(userCache, memberList);
 });
 
 // Message Eventhandler
@@ -152,7 +146,7 @@ bot.on("message", msg => {
 
 bot.on("guildMemberAdd", member => {
     var id = member.id;
-    Sync.joinSync(instance, id);
+    joinSync.run(userCache, id);
 });
 
 //Bot login
