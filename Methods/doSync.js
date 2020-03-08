@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const bot = new Discord.Client();
 const config = require('../config/main.json');
 
-module.exports.run = async (API) => {
+export function doSync(API) {
     let server = bot.guilds.get('discordServerID');
     let discordProfile = server.members.get(user.discord_id);
     var users = API;
@@ -53,8 +53,4 @@ module.exports.run = async (API) => {
             // Loop through each Primary then Secondary position and assign the roles
         }
     });
-}
-
-module.exports.help = {
-    name: 'doSync'
 }

@@ -12,6 +12,8 @@ const rank = require('config/rank.json');
 const fs = require("fs");
 const bot = new Discord.Client();
 const botLogin = config.Login;
+import { doSync } from './Methods/doSync.js';
+import { joinSync } from './Methods/joinSync.js';
 
 // Crash reporting
 bot.on('disconnect', () => console.error('Connection Lost...'));
@@ -19,10 +21,28 @@ bot.on('reconnecting', () => console.log('Attempting to reconnect....'));
 bot.on('error', error => console.error(error));
 bot.on('warn', info => console.error(info));
 
+// Chat Commands:
+bot.commands = new Discord.Collection();
+fs.readdir('./ChatCmds/', (err, files) => {
+    if(err) console.error(err);
+
+    let jsfiles = files.filter(f => f.split(".").pop() === 'js');
+    if(jsfiles.length <= 0) return console.log('No commands!');
+    console.log(`Loading ${jsfiles.length} methods!`);
+
+    jsfiles.forEach((f, i) => {
+        let props = require(`./ChatCmds/${f}`);
+        console.log(`${i + 1}: ${f} loaded!`)
+        bot.commands.set(props.help.name, props);
+    })
+})
+
 // ******* START OF API STUFF *******
 // Axios and Cav API
 const AUTH_TOKEN = config.CavAPIToken;
 const axios = require('axios').default;
+
+// active members.
 const instance = axios.create({
     baseURL: 'https://api.7cav.us/v1/users/active',
     withCredentials: false,
@@ -32,6 +52,17 @@ const instance = axios.create({
         'Authorization': "Bearer " + AUTH_TOKEN
     }
 })
+
+// This is to append to the API call.
+// instance += axios.create({
+//     baseURL: 'https://api.7cav.us/v1/users/ret',
+//     withCredentials: false,
+//     headers: {
+//         'Accept': 'application/json',
+//         'Content-Type': 'application/json',
+//         'Authorization': "Bearer " + AUTH_TOKEN
+//     }
+// })
 
 // Concept API call to get updated information from API.
 // Return information from the API and put it into ./data.json
@@ -109,16 +140,19 @@ var Officer = rank.Ranks.Officer;
 bot.on('ready', () => {
     console.log("Connected as " + bot.user.tag);
 
-    // doSync();
+    doSync();
 });
 
 // Message Eventhandler
 bot.on("message", msg => {
-
     // Quick command to make sure the bot works and hasen't crashed.
     if (msg.content.toLowerCase().includes("!bot")) {
         msg.reply("I'm here!");
     };
+});
+
+bot.on("guildMemberAdd", member => {
+    joinSync();
 });
 
 //Bot login
