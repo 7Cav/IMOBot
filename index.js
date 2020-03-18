@@ -138,38 +138,7 @@ bot.on('ready', () => {
     let members = await bot.guilds.get(config.DiscordServerID).members;
 
     users.forEach(user => {
-        let discordProfile = await members.get(user.discord_id);
-
-        discordProfile.removeRole(discordProfile.roles);
-
-        let rankShortName = user.rank_shorthand;
-
-        if (user.status == 'disch') {
-            if (user.primary_position == Roster.RETIRED) {
-                discordProfile.addRole(config.GROUP_RETIRED_ID);
-                continue;
-            }
-
-            // if the user is discharged, but not retired, we don't care
-            // what their billet is. Just give them discarged and move
-            // on to the next user
-            discordProfile.addRole(config.GROUP_DISCHARGED_ID);
-            continue;
-        }
-
-        // all non discharged members need the active role
-        discordProfile.addRole(config.GROUP_ACTIVE_ID);
-
-        if (ranks.NCO.includes(rankShortName)) {
-            discordProfile.addRole(config.GROUP_NCO_ID);
-            continue;
-        }
-
-        if (ranks.OFFICER.includes(rankShortName)) {
-            discordProfile.addRole(config.GROUP_OFFICER_ID);
-            continue;
-        }
-
+        syncDiscordUser(user.discord_id, user);
     });
 
 });
@@ -182,14 +151,63 @@ bot.on("message", msg => {
     };
 
     if(msg.content.toLowerCase().includes("!sync")) {
-        //doSync.run(userCache, memberList);
+        syncDiscordUser(msg.author.id);
     }
 });
 
 bot.on("guildMemberAdd", member => {
     var id = member.id;
     //joinSync.run(userCache, id);
+    syncDiscordUser(member.id);
 });
 
 //Bot login
 bot.login(botLogin).catch(err => console.log(err));
+
+
+function syncDiscordUser(discordId, cavUser = null) {
+
+    var apiUserObject = null;
+    if (cavUser == null) {
+        // attempt to get Cav User via api/user/discord/{id}
+        // JARVIS NEEDS TO IMPLEMENT THIS ENDPOINT
+        // apiUserObject = await goGetApiUserObject(discordId);
+
+        // if we couldn't find a cav user for the discord id, return
+        if (apiUserObject == {}) {
+            return;
+        }
+    }
+
+    let discordProfile = await members.get(discordId);
+
+    discordProfile.removeRole(discordProfile.roles);
+
+    let rankShortName = user.rank_shorthand;
+
+    if (user.status == 'disch') {
+        if (user.primary_position == Roster.RETIRED) {
+            discordProfile.addRole(config.GROUP_RETIRED_ID);
+            return;
+        }
+
+        // if the user is discharged, but not retired, we don't care
+        // what their billet is. Just give them discarged and move
+        // on to the next user
+        discordProfile.addRole(config.GROUP_DISCHARGED_ID);
+        return;
+    }
+
+    // all non discharged members need the active role
+    discordProfile.addRole(config.GROUP_ACTIVE_ID);
+
+    if (ranks.NCO.includes(rankShortName)) {
+        discordProfile.addRole(config.GROUP_NCO_ID);
+        return;
+    }
+
+    if (ranks.OFFICER.includes(rankShortName)) {
+        discordProfile.addRole(config.GROUP_OFFICER_ID);
+        return;
+    }    
+}
