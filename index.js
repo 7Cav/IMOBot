@@ -78,57 +78,7 @@ const instance = axios.create({
 // Return information from the API and put it into ./data.json
 
 // Simulated API response:
-let userCache = [
-    {
-        "user_id": 4986,
-        "milpac_id": 2808,
-        "real_name": "William Vex",
-        "username": "Vex.W",
-        "uniform_url": "https://7cav.us/data/pixelexit/rosters/uniforms/2/2808.jpg",
-        "rank": "Chief Warrant Officer 2",
-        "rank_id": 15,
-        "rank_image_url": "https://7cav.us/data/pixelexit/rosters/ranks/0/15.jpg",
-        "rank_shorthand": "CW2",
-        "status": "active",
-        "primary_position": "S6 - Developer",
-        "secondary_positions": [
-            {
-                "position_id": 257,
-                "position_title": "WAG Administrator",
-                "possible_secondary": 1
-            },
-            {
-                "position_id": 590,
-                "position_title": "S6 - Game Clerk",
-                "possible_secondary": 1
-            }
-        ],
-        "bio": "",
-        "join_date": "2018-11-12 00:00:00",
-        "promotion_date": "2020-02-23 00:00:00",
-        "discord_id": "201893080805146624"
-    },
-    {
-        "user_id": 13,
-        "milpac_id": 263,
-        "real_name": "Adam Jarvis",
-        "username": "Jarvis.A",
-        "uniform_url": "https://7cav.us/data/pixelexit/rosters/uniforms/0/263.jpg",
-        "rank": "Colonel",
-        "rank_id": 6,
-        "rank_image_url": "https://7cav.us/data/pixelexit/rosters/ranks/0/6.jpg",
-        "rank_shorthand": "COL",
-        "status": "active",
-        "primary_position": "S6 - Officer In Charge",
-        "secondary_positions": [],
-        "bio": "",
-        "join_date": "2012-05-18 00:00:00",
-        "promotion_date": "2019-02-20 00:00:00",
-        "discord_id": "104461066662060032"
-    }
-];
-
-let users = userCache; // in future this would be a db call
+let users = require('./mock-db.json').data.users;
 // ******* END OF API STUFF *******
 
 //When the bot is ready.
@@ -152,6 +102,11 @@ bot.on("message", msg => {
 
     if(msg.content.toLowerCase().includes("!sync")) {
         syncDiscordUser(msg.author.id);
+    }
+
+    if(msg.content.toLowerCase().includes("!milpac"))
+    {
+
     }
 });
 
