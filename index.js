@@ -8,7 +8,7 @@
 const Discord = require('discord.js');
 var config = require('./config/main.json');
 var billet = require('./config/billet.json');
-var rank = require('./config/rank.json');
+var ranks = require('./config/ranks.json');
 const fs = require("fs");
 const bot = new Discord.Client();
 const botLogin = config.Login;
@@ -24,6 +24,12 @@ bot.on('disconnect', () => console.error('Connection Lost...'));
 bot.on('reconnecting', () => console.log('Attempting to reconnect....'));
 bot.on('error', error => console.error(error));
 bot.on('warn', info => console.error(info));
+
+const Roster = {
+    RETIRED: 'Retired',
+    DISCHARGED: 'Dischargedf'
+};
+
 
 // Chat Commands:
 bot.commands = new Discord.Collection(); 
@@ -125,63 +131,47 @@ let userCache = [
 let users = userCache; // in future this would be a db call
 // ******* END OF API STUFF *******
 
-// Generalize Shorthand rankings:
-var Enlisted = rank.Ranks.Enlisted;
-var NCO = rank.Ranks.NCO;
-var Officer = rank.Ranks.Officer;
-
 //When the bot is ready.
 bot.on('ready', () => {
     console.log("Connected as " + bot.user.tag);
-
-    //doSync.run(userCache, memberList);
     
-    const memList = bot.guilds.get(config.DiscordServerID);
+    let members = await bot.guilds.get(config.DiscordServerID).members;
 
-    async function doSync() {
-        // Assign Billet Roles:
-        users.forEach(user => {
-            // ERROR: discordProfile.forEach is not a function
-            memList.members.forEach(mem => {
-                // Sync Ranks
-                let shortRank = user.rank_shorthand;
+    users.forEach(user => {
+        let discordProfile = await members.get(user.discord_id);
 
-                // Check to see if the user is an active member from the API.
-                if(user.status === "active" && user.discord_id == mem.id)
-                {
-                    if (Enlisted.includes(shortRank)) {
-                        if (!mem.roles.has('681300276518715394')) {
-                            // This is really just the Active role...
-                            mem.addRole('681300276518715394');
-                        }
-                    } else if (NCO.includes(shortRank)) {
-                        if (!mem.roles.has('681300227608936489')) {
-                            mem.addRole('681300227608936489');
-                            mem.addRole('681300276518715394');
-                        }
-                    } else if (Officer.includes(shortRank)) {
-                        if (!mem.roles.has('681300151066951700')) {
-                            mem.addRole('681300151066951700');
-                            mem.addRole('681300276518715394');
-                        }
-                    }
-                } else if(user.status === "disch")
-                {
-                    if(user.primary_position === "Retired")
-                    {
-                        mem.removeRoles(mem.roles);
-                        mem.addRole('681300468202340366');
-                    }else if(user.primary_position === "Discharged")
-                    {
-                        mem.removeRoles(discordProfile.roles);
-                        mem.addRole('681300592865705997');
-                    }
-                }
-            })
-        })
-    }
+        discordProfile.removeRole(discordProfile.roles);
 
-    doSync();
+        let rankShortName = user.rank_shorthand;
+
+        if (user.status == 'disch') {
+            if (user.primary_position == Roster.RETIRED) {
+                discordProfile.addRole(config.GROUP_RETIRED_ID);
+                continue;
+            }
+
+            // if the user is discharged, but not retired, we don't care
+            // what their billet is. Just give them discarged and move
+            // on to the next user
+            discordProfile.addRole(config.GROUP_DISCHARGED_ID);
+            continue;
+        }
+
+        // all non discharged members need the active role
+        discordProfile.addRole(config.GROUP_ACTIVE_ID);
+
+        if (ranks.NCO.includes(rankShortName)) {
+            discordProfile.addRole(config.GROUP_NCO_ID);
+            continue;
+        }
+
+        if (ranks.OFFICER.includes(rankShortName)) {
+            discordProfile.addRole(config.GROUP_OFFICER_ID);
+            continue;
+        }
+
+    });
+
 });
 
 // Message Eventhandler
