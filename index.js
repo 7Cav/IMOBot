@@ -12,11 +12,12 @@ var rank = require('./config/rank.json');
 const fs = require("fs");
 const bot = new Discord.Client();
 const botLogin = config.Login;
-var doSync = require('./Methods/doSync');
-var joinSync = require('./Methods/joinSync');
+//var doSync = require('./Methods/doSync');  // This is depricated atm
+//var joinSync = require('./Methods/joinSync');  // This is depricated atm
 
-var memberList = () => {bot.guilds.get(`${config.DiscordServerID}`).members};
-console.log(memberList);
+// Prevent the bot from pausing due to the amount of listeners being emitted
+// when the function at line 141 runs.
+require('events').EventEmitter.prototype._maxListeners = 0;
 
 // Crash reporting
 bot.on('disconnect', () => console.error('Connection Lost...'));
@@ -133,7 +134,54 @@ var Officer = rank.Ranks.Officer;
 bot.on('ready', () => {
     console.log("Connected as " + bot.user.tag);
 
-    doSync.run(userCache, memberList);
+    //doSync.run(userCache, memberList);
+    
+    const memList = bot.guilds.get(config.DiscordServerID);
+
+    async function doSync() {
+        // Assign Billet Roles:
+        users.forEach(user => {
+            // ERROR: discordProfile.forEach is not a function
+            memList.members.forEach(mem => {
+                // Sync Ranks
+                let shortRank = user.rank_shorthand;
+
+                // Check to see if the user is an active member from the API.
+                if(user.status === "active" && user.discord_id == mem.id)
+                {
+                    if (Enlisted.includes(shortRank)) {
+                        if (!mem.roles.has('681300276518715394')) {
+                            // This is really just the Active role...
+                            mem.addRole('681300276518715394');
+                        }
+                    } else if (NCO.includes(shortRank)) {
+                        if (!mem.roles.has('681300227608936489')) {
+                            mem.addRole('681300227608936489');
+                            mem.addRole('681300276518715394');
+                        }
+                    } else if (Officer.includes(shortRank)) {
+                        if (!mem.roles.has('681300151066951700')) {
+                            mem.addRole('681300151066951700');
+                            mem.addRole('681300276518715394');
+                        }
+                    }
+                } else if(user.status === "disch")
+                {
+                    if(user.primary_position === "Retired")
+                    {
+                        mem.removeRoles(mem.roles);
+                        mem.addRole('681300468202340366');
+                    }else if(user.primary_position === "Discharged")
+                    {
+                        mem.removeRoles(discordProfile.roles);
+                        mem.addRole('681300592865705997');
+                    }
+                }
+            })
+        })
+    }
+
+    doSync();
 });
 
 // Message Eventhandler
@@ -142,11 +190,15 @@ bot.on("message", msg => {
     if (msg.content.toLowerCase().includes("!bot")) {
         msg.reply("I'm here!");
     };
+
+    if(msg.content.toLowerCase().includes("!sync")) {
+        //doSync.run(userCache, memberList);
+    }
 });
 
 bot.on("guildMemberAdd", member => {
     var id = member.id;
-    joinSync.run(userCache, id);
+    //joinSync.run(userCache, id);
 });
 
 //Bot login

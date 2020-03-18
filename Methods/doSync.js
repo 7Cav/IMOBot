@@ -8,7 +8,7 @@ module.exports.run = async (API, members) => {
     console.log(discordProfile);
     
     // Assign Billet Roles:
-    mems.forEach(user => {
+    users.forEach(user => {
             // ERROR: discordProfile.forEach is not a function
         discordProfile.forEach(mem => {
                 // Sync Ranks
