@@ -5,8 +5,7 @@ const config = require('../config/main.json');
 module.exports.run = async (API, members) => {
     var users = API;
     let discordProfile = members
-    console.log(discordProfile);
-    
+
     // Assign Billet Roles:
     users.forEach(user => {
             // ERROR: discordProfile.forEach is not a function

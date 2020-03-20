@@ -1,0 +1,18 @@
+[Unit]
+Description=Nodejs Discord bot
+
+[Service]
+ExecStartPre=/usr/bin/git pull
+ExecStart=/usr/bin/node /opt/IMOBot/index.js
+WorkingDirectory=/opt/IMOBot
+Restart=always
+# Restart service after 10 seconds if node service crashes
+RestartSec=10
+# Output to syslog
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=discord-imobot
+User=imobot
+
+[Install]
+WantedBy=multi-user.target

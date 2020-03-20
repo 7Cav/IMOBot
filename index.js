@@ -6,24 +6,23 @@
 
 // Dependencies
 const Discord = require('discord.js');
+const pino = require("pino");
+
+
 var config = require('./config/main.json');
 var billet = require('./config/billet.json');
 var ranks = require('./config/ranks.json');
 const fs = require("fs");
 const bot = new Discord.Client();
 const botLogin = config.BotToken;
-//var doSync = require('./Methods/doSync');  // This is depricated atm
-//var joinSync = require('./Methods/joinSync');  // This is depricated atm
 
-// Prevent the bot from pausing due to the amount of listeners being emitted
-// when the function at line 141 runs.
-// require('events').EventEmitter.prototype._maxListeners = 0;
+const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 
 // Crash reporting
-bot.on('disconnect', () => console.error('Connection Lost...'));
-bot.on('reconnecting', () => console.log('Attempting to reconnect....'));
-bot.on('error', error => console.error(error));
-bot.on('warn', info => console.error(info));
+bot.on('disconnect', () => logger.error('Connection Lost...'));
+bot.on('reconnecting', () => logger.info('Attempting to reconnect....'));
+bot.on('error', error => logger.error(error));
+bot.on('warn', info => logger.error(info));
 
 const Roster = {
     RETIRED: 'Retired',
@@ -37,12 +36,12 @@ fs.readdir('./ChatCmds/', (err, files) => {
     if(err) console.error(err);
 
     let jsfiles = files.filter(f => f.split(".").pop() === 'js');
-    if(jsfiles.length <= 0) return console.log('No commands!');
-    console.log(`Loading ${jsfiles.length} methods!`);
+    if(jsfiles.length <= 0) return logger.info("No commands!");
+    logger.info(`Loading ${jsfiles.length} methods!`);
 
     jsfiles.forEach((f, i) => {
         let props = require(`./ChatCmds/${f}`);
-        console.log(`${i + 1}: ${f} loaded!`)
+        logger.info(`${i + 1}: ${f} loaded!`)
         bot.commands.set(props.help.name, props);
     })
 })
@@ -81,7 +80,7 @@ async function getUsers() {
     try {
         return await instance.get('users/active');
     } catch (error) {
-        console.error(error);
+        logger.error(error);
     }
 }
 
@@ -89,14 +88,14 @@ async function getUserFromDiscordID(discordId) {
     try {
         return await instance.get('user/discord/' + discordId);
     } catch (error) {
-        console.error(error);
+        logger.error(error);
     }
 }
 // ******* END OF API STUFF *******
 
 //When the bot is ready.
 bot.on('ready', async () => {
-    console.log("Connected as " + bot.user.tag);
+    logger.info("Connected as " + bot.user.tag);
 });
 
 // Message Eventhandler
@@ -107,6 +106,7 @@ bot.on("message", msg => {
     }
 
     if(msg.content.toLowerCase().startsWith("!sync")) {
+        logger.info("Sync running for %s", msg.author.username)
         syncDiscordUser(msg.author.id);
     }
 
@@ -117,7 +117,7 @@ bot.on("message", msg => {
 });
 
 bot.on("rateLimit", info => {
-    console.log("hit rate limt");
+    logger.warn("hit rate limt");
     setTimeout(() => true, 500);
 })
 
@@ -128,7 +128,7 @@ bot.on("guildMemberAdd", member => {
 });
 
 //Bot login
-bot.login(botLogin).catch(err => console.log(err));
+bot.login(botLogin).catch(err => logger.error(err));
 
 
 async function syncDiscordUser(discordId, cavUser = null) {
@@ -141,7 +141,10 @@ async function syncDiscordUser(discordId, cavUser = null) {
         if (apiUserRequest.hasOwnProperty('data')) {
             cavUser = apiUserRequest.data.data;
         } else {
-            console.log("no cav user found");
+            logger.info(
+                "No user found on the forums. Skipping %s",
+                discordId
+            );
             return;
         }
     }
@@ -151,44 +154,46 @@ async function syncDiscordUser(discordId, cavUser = null) {
 
     if (!discordServer.members.has(discordId)) {
         // Skipping user, no discord account found
+        logger.info("No user found in discord. Skipping %s", discordId);
         return;
     }
 
     let discordProfile = discordServer.members.get(discordId);
 
     await discordProfile.removeRoles(Object.values(config.MANAGED_GROUPS))
-        .catch(console.log);
+        .catch(logger.warn);
 
     let rankShortName = cavUser.rank_shorthand;
 
     if (cavUser.status == 'disch') {
         if (cavUser.primary_position == Roster.RETIRED) {
             await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_RETIRED_ID])
-                .catch(console.log);
+                .catch(logger.warn);
             return;
         }
 
         // if the user is discharged, but not retired, we don't care
         // what their billet is. Just give them discarged and move
         // on to the next user
-        await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_DISCHARGED_ID])
-            .catch(console.log);
+        await discordProfile
+            .addRoles([config.MANAGED_GROUPS.GROUP_DISCHARGED_ID])
+            .catch(logger.warn);
         return;
     }
 
     // all non discharged members need the active role
     await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_ACTIVE_ID])
-        .catch(console.log);
+        .catch(logger.warn);
 
     if (ranks.NCO.includes(rankShortName)) {
         await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_NCO_ID])
-            .catch(console.log);
+            .catch(logger.warn);
         return;
     }
 
     if (ranks.OFFICER.includes(rankShortName)) {
         await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_OFFICER_ID])
-            .catch(console.log);
+            .catch(logger.warn);
         return;
     }
 }
