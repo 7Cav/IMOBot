@@ -3,8 +3,9 @@
 
 # How to run:
 
-1. fill in config/main.json
-2. npm run start
+1. Rename the main.json.template in config/ to main.json
+2. Fill in the items in main.json
+3. `npm run start`
 
 # Features:
   * Connected to 7th Cav API

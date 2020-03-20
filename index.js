@@ -96,7 +96,7 @@ bot.on("message", msg => {
     // Quick command to make sure the bot works and hasen't crashed.
     if (msg.content.toLowerCase().includes("!bot")) {
         msg.reply("I'm here!");
-    };
+    }
 
     if(msg.content.toLowerCase().includes("!sync")) {
         syncDiscordUser(msg.author.id);
@@ -120,14 +120,15 @@ bot.login(botLogin).catch(err => console.log(err));
 
 async function syncDiscordUser(discordId, cavUser = null) {
 
-    var apiUserObject = null;
+    var apiUserObject = {};
     if (cavUser == null) {
         // attempt to get Cav User via api/user/discord/{id}
-        // JARVIS NEEDS TO IMPLEMENT THIS ENDPOINT
         // apiUserRequest = await goGetApiUserObject(discordId);
 
         // if we couldn't find a cav user for the discord id, return
-        if (apiUserRequest == {}) {
+        if (Object.keys(apiUserObject).length === 0
+        && apiUserObject.constructor === Object) {
+            console.log("no cav user found");
             return;
         } else {
             cavUser = apiUserObject.user;
