@@ -101,16 +101,16 @@ bot.on('ready', async () => {
 // Message Eventhandler
 bot.on("message", msg => {
     // Quick command to make sure the bot works and hasen't crashed.
-    if (msg.content.toLowerCase().includes("!bot")) {
+    if (msg.content.toLowerCase().startsWith("!bot")) {
         msg.reply("I'm here!");
     }
 
-    if(msg.content.toLowerCase().includes("!sync")) {
+    if(msg.content.toLowerCase().startsWith("!sync")) {
         logger.info("Sync running for %s", msg.author.username)
         syncDiscordUser(msg.author.id);
     }
 
-    if(msg.content.toLowerCase().includes("!milpac"))
+    if(msg.content.toLowerCase().startsWith("!milpac"))
     {
 
     }
