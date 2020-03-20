@@ -97,16 +97,6 @@ async function getUserFromDiscordID(discordId) {
 //When the bot is ready.
 bot.on('ready', async () => {
     console.log("Connected as " + bot.user.tag);
-
-    const response = await getUsers()
-
-    let users = response.data.data.users;
-
-    console.log(users);
-
-    users.forEach(user => {
-        syncDiscordUser(user.discord_id, user);
-    });
 });
 
 // Message Eventhandler
