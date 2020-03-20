@@ -2,6 +2,7 @@
 Description=Nodejs Discord bot
 
 [Service]
+ExecStartPre=/usr/bin/git pull
 ExecStart=/usr/bin/node /opt/IMOBot/index.js
 WorkingDirectory=/opt/IMOBot
 Restart=always
