@@ -11,7 +11,7 @@ var billet = require('./config/billet.json');
 var ranks = require('./config/ranks.json');
 const fs = require("fs");
 const bot = new Discord.Client();
-const botLogin = config.Login;
+const botLogin = config.BotToken;
 //var doSync = require('./Methods/doSync');  // This is depricated atm
 //var joinSync = require('./Methods/joinSync');  // This is depricated atm
 
@@ -32,7 +32,7 @@ const Roster = {
 
 
 // Chat Commands:
-bot.commands = new Discord.Collection(); 
+bot.commands = new Discord.Collection();
 fs.readdir('./ChatCmds/', (err, files) => {
     if(err) console.error(err);
 
@@ -61,7 +61,7 @@ const instance = axios.create({
         'Content-Type': 'application/json',
         'Authorization': "Bearer " + AUTH_TOKEN
     }
-})
+});
 
 // This is to append to the API call.
 // instance += axios.create({
@@ -84,8 +84,6 @@ let users = require('./mock-db.json').data.users;
 //When the bot is ready.
 bot.on('ready', () => {
     console.log("Connected as " + bot.user.tag);
-    
-    let members = bot.guilds.get(config.DiscordServerID).members;
 
     users.forEach(user => {
         syncDiscordUser(user.discord_id, user);
@@ -139,37 +137,39 @@ async function syncDiscordUser(discordId, cavUser = null) {
     let discordServer = bot.guilds.get(config.DiscordServerID);
     let discordProfile = discordServer.members.get(discordId);
 
-    await Object.values(config.MANAGED_GROUPS).forEach(groupID => {
-        discordServer.roles.has(groupID)
-        ? discordProfile.removeRole(discordServer.roles.get(groupID))
-        : console.log('fuck');
-    });
+    await discordProfile.removeRoles(Object.values(config.MANAGED_GROUPS))
+        .catch(console.log);
 
     let rankShortName = cavUser.rank_shorthand;
 
     if (cavUser.status == 'disch') {
         if (cavUser.primary_position == Roster.RETIRED) {
-            discordProfile.addRole(config.MANAGED_GROUPS.GROUP_RETIRED_ID);
+            discordProfile.addRole(config.MANAGED_GROUPS.GROUP_RETIRED_ID)
+                .catch(console.log);
             return;
         }
 
         // if the user is discharged, but not retired, we don't care
         // what their billet is. Just give them discarged and move
         // on to the next user
-        discordProfile.addRole(config.MANAGED_GROUPS.GROUP_DISCHARGED_ID);
+        discordProfile.addRole(config.MANAGED_GROUPS.GROUP_DISCHARGED_ID)
+        .catch(console.log);
         return;
     }
 
     // all non discharged members need the active role
-    discordProfile.addRole(config.MANAGED_GROUPS.GROUP_ACTIVE_ID);
+    discordProfile.addRole(config.MANAGED_GROUPS.GROUP_ACTIVE_ID)
+        .catch(console.log);
 
     if (ranks.NCO.includes(rankShortName)) {
-        discordProfile.addRole(config.MANAGED_GROUPS.GROUP_NCO_ID);
+        discordProfile.addRole(config.MANAGED_GROUPS.GROUP_NCO_ID)
+            .catch(console.log);
         return;
     }
 
     if (ranks.OFFICER.includes(rankShortName)) {
-        discordProfile.addRole(config.MANAGED_GROUPS.GROUP_OFFICER_ID);
+        discordProfile.addRole(config.MANAGED_GROUPS.GROUP_OFFICER_ID)
+            .catch(console.log);
         return;
-    }    
+    }
 }
