@@ -11,7 +11,7 @@ var billet = require('./config/billet.json');
 var ranks = require('./config/ranks.json');
 const fs = require("fs");
 const bot = new Discord.Client();
-const botLogin = config.BotToken;
+const botLogin = config.Login;
 //var doSync = require('./Methods/doSync');  // This is depricated atm
 //var joinSync = require('./Methods/joinSync');  // This is depricated atm
 
@@ -30,20 +30,20 @@ const Roster = {
     DISCHARGED: 'Dischargedf'
 };
 
-
 // Chat Commands:
+const prefix = '!';
 bot.commands = new Discord.Collection();
 fs.readdir('./ChatCmds/', (err, files) => {
     if(err) console.error(err);
 
     let jsfiles = files.filter(f => f.split(".").pop() === 'js');
     if(jsfiles.length <= 0) return console.log('No commands!');
-    console.log(`Loading ${jsfiles.length} methods!`);
+    console.log(`Loading ${jsfiles.length} commands!`);
 
     jsfiles.forEach((f, i) => {
         let props = require(`./ChatCmds/${f}`);
         console.log(`${i + 1}: ${f} loaded!`)
-        bot.commands.set(props.help.name, props);
+        bot.commands.set(props.help.name, props)
     })
 })
 
@@ -101,18 +101,19 @@ bot.on('ready', async () => {
 
 // Message Eventhandler
 bot.on("message", msg => {
-    // Quick command to make sure the bot works and hasen't crashed.
-    if (msg.content.toLowerCase().startsWith("!bot")) {
-        msg.reply("I'm here!");
-    }
+    // If the msg being looked at is the bot, then don't do anything.
+    // This is to prevent the next container from looping its self.
+    let messageArray = msg.content.toLowerCase().split(/\s+/g);
+    let command = messageArray[0]
+    let args = messageArray.slice(1);
+    // Make sure the bot doesn't touch its own messages.
+    if (msg.author.bot) {return;}
+    // commands
+    let cmd = bot.commands.get(command.slice(prefix.length));
+    if(cmd){ cmd.run(bot, msg, args, getUserFromDiscordID);}
 
     if(msg.content.toLowerCase().startsWith("!sync")) {
         syncDiscordUser(msg.author.id);
-    }
-
-    if(msg.content.toLowerCase().startsWith("!milpac"))
-    {
-
     }
 });
 
