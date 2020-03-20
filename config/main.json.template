@@ -1,0 +1,13 @@
+{
+        "BotToken": "",
+        "CavAPIToken": "",
+        "JoinChannelID": "",
+        "MANAGED_GROUPS": {
+            "GROUP_ENLISTED_ID": "681300276518715394",
+            "GROUP_NCO_ID": "681300227608936489",
+            "GROUP_OFFICER_ID": "681300151066951700",
+            "GROUP_ACTIVE_ID": "",
+            "GROUP_RETIRED_ID": "",
+            "GROUP_DISCHARGED_ID": ""
+        }
+}
