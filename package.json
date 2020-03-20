@@ -20,6 +20,7 @@
   "dependencies": {
     "axios": "^0.19.2",
     "discord.js": "^11.5.1",
-    "node": "^13.8.0"
+    "node": "^13.8.0",
+    "pino": "^5.17.0"
   }
 }
