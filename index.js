@@ -54,7 +54,7 @@ const axios = require('axios').default;
 
 // active members.
 const instance = axios.create({
-    baseURL: 'https://api.7cav.us/v1/users/active',
+    baseURL: 'https://api.7cav.us/v1/',
     withCredentials: false,
     headers: {
         'Accept': 'application/json',
@@ -77,18 +77,36 @@ const instance = axios.create({
 // Concept API call to get updated information from API.
 // Return information from the API and put it into ./data.json
 
-// Simulated API response:
-let users = require('./mock-db.json').data.users;
+async function getUsers() {
+    try {
+        return await instance.get('users/active');
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function getUserFromDiscordID(discordId) {
+    try {
+        return await instance.get('user/discord/' + discordId);
+    } catch (error) {
+        console.error(error);
+    }
+}
 // ******* END OF API STUFF *******
 
 //When the bot is ready.
-bot.on('ready', () => {
+bot.on('ready', async () => {
     console.log("Connected as " + bot.user.tag);
+
+    const response = await getUsers()
+
+    let users = response.data.data.users;
+
+    console.log(users);
 
     users.forEach(user => {
         syncDiscordUser(user.discord_id, user);
     });
-
 });
 
 // Message Eventhandler
@@ -108,6 +126,11 @@ bot.on("message", msg => {
     }
 });
 
+bot.on("rateLimit", info => {
+    console.log("hit rate limt");
+    setTimeout(() => true, 500);
+})
+
 bot.on("guildMemberAdd", member => {
     var id = member.id;
     //joinSync.run(userCache, id);
@@ -120,22 +143,27 @@ bot.login(botLogin).catch(err => console.log(err));
 
 async function syncDiscordUser(discordId, cavUser = null) {
 
-    var apiUserObject = {};
     if (cavUser == null) {
         // attempt to get Cav User via api/user/discord/{id}
-        // apiUserRequest = await goGetApiUserObject(discordId);
+        apiUserRequest = await getUserFromDiscordID(discordId);
 
         // if we couldn't find a cav user for the discord id, return
-        if (Object.keys(apiUserObject).length === 0
-        && apiUserObject.constructor === Object) {
+        if (apiUserRequest.hasOwnProperty('data')) {
+            cavUser = apiUserRequest.data.data;
+        } else {
             console.log("no cav user found");
             return;
-        } else {
-            cavUser = apiUserObject.user;
         }
     }
 
     let discordServer = bot.guilds.get(config.DiscordServerID);
+
+
+    if (!discordServer.members.has(discordId)) {
+        // Skipping user, no discord account found
+        return;
+    }
+
     let discordProfile = discordServer.members.get(discordId);
 
     await discordProfile.removeRoles(Object.values(config.MANAGED_GROUPS))
@@ -145,7 +173,7 @@ async function syncDiscordUser(discordId, cavUser = null) {
 
     if (cavUser.status == 'disch') {
         if (cavUser.primary_position == Roster.RETIRED) {
-            discordProfile.addRole(config.MANAGED_GROUPS.GROUP_RETIRED_ID)
+            await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_RETIRED_ID])
                 .catch(console.log);
             return;
         }
@@ -153,23 +181,23 @@ async function syncDiscordUser(discordId, cavUser = null) {
         // if the user is discharged, but not retired, we don't care
         // what their billet is. Just give them discarged and move
         // on to the next user
-        discordProfile.addRole(config.MANAGED_GROUPS.GROUP_DISCHARGED_ID)
-        .catch(console.log);
+        await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_DISCHARGED_ID])
+            .catch(console.log);
         return;
     }
 
     // all non discharged members need the active role
-    discordProfile.addRole(config.MANAGED_GROUPS.GROUP_ACTIVE_ID)
+    await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_ACTIVE_ID])
         .catch(console.log);
 
     if (ranks.NCO.includes(rankShortName)) {
-        discordProfile.addRole(config.MANAGED_GROUPS.GROUP_NCO_ID)
+        await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_NCO_ID])
             .catch(console.log);
         return;
     }
 
     if (ranks.OFFICER.includes(rankShortName)) {
-        discordProfile.addRole(config.MANAGED_GROUPS.GROUP_OFFICER_ID)
+        await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_OFFICER_ID])
             .catch(console.log);
         return;
     }
