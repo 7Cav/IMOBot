@@ -76,9 +76,41 @@ const instance = axios.create({
 // Concept API call to get updated information from API.
 // Return information from the API and put it into ./data.json
 
-async function getUsers() {
+async function getActiveUsers() {
     try {
         return await instance.get('users/active');
+    } catch (error) {
+        logger.error(error);
+    }
+}
+
+async function getRetUsers() {
+    try {
+        return await instance.get('users/ret');
+    } catch (error) {
+        logger.error(error);
+    }
+}
+
+async function getWohUsers() {
+    try {
+        return await instance.get('users/woh');
+    } catch (error) {
+        logger.error(error);
+    }
+}
+
+async function getResUsers() {
+    try {
+        return await instance.get('users/reserve');
+    } catch (error) {
+        logger.error(error);
+    }
+}
+
+async function getDischUsers() {
+    try {
+        return await instance.get('users/disch');
     } catch (error) {
         logger.error(error);
     }
@@ -231,12 +263,47 @@ async function getMilpac(discordProfile) {
 }
 
 async function runGlobalSync() {
-    let response = await getUsers();
+    // let [active, ret, disch] = await Promise.all([getActiveUsers(), getRetUsers(), getDischUsers()]);
 
-    let users = response.data.data.users;
-    users.forEach(user => {
-        syncDiscordUser(user.discord_id, user);
-    })
+    getActiveUsers().then(res => {
+        res.data.data.users
+        .filter(user => user.discord_id)
+        .forEach(user => {
+            syncDiscordUser(user.discord_id, user);
+        });
+    });
+
+    getRetUsers().then(res => {
+        res.data.data.users
+            .filter(user => user.discord_id)
+            .forEach(user => {
+                syncDiscordUser(user.discord_id, user);
+            });
+    });
+
+    getWohUsers().then(res => {
+        res.data.data.users
+            .filter(user => user.discord_id)
+            .forEach(user => {
+                syncDiscordUser(user.discord_id, user);
+            });
+    });
+
+    getResUsers().then(res => {
+        res.data.data.users
+            .filter(user => user.discord_id)
+            .forEach(user => {
+                syncDiscordUser(user.discord_id, user);
+            });
+    });
+
+    getDischUsers().then(res => {
+        res.data.data.users
+            .filter(user => user.discord_id)
+            .forEach(user => {
+                syncDiscordUser(user.discord_id, user);
+            });
+    });
 }
 
 async function syncDiscordUser(discordId, cavUser = null) {
@@ -268,12 +335,25 @@ async function syncDiscordUser(discordId, cavUser = null) {
 
     let discordProfile = discordServer.members.cache.get(discordId);
 
+    logger.info(`Starting sync for ${cavUser.username}`);
     await discordProfile.roles.remove(Object.values(config.MANAGED_GROUPS))
-        .catch(logger.warn);
+        .catch(console.error);
 
     var rolesToSet = [];
 
     let rankShortName = cavUser.rank_shorthand;
+
+    if (cavUser.roster_id == 3) {
+        await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_WOH_ID])
+            .catch(console.error);
+        return;
+    }
+
+    if (cavUser.roster_id == 8) {
+        await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_RESERVE_ID])
+            .catch(console.error);
+        return;
+    }
 
     if (cavUser.status == 'disch') {
         if (cavUser.primary_position == Roster.RETIRED) {
@@ -304,6 +384,4 @@ async function syncDiscordUser(discordId, cavUser = null) {
 
     await discordProfile.roles.add(rolesToSet)
         .catch(console.error);
-
-    logger.info(`Finished sync for ${cavUser.username}`);
 }
