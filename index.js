@@ -344,7 +344,10 @@ async function syncDiscordUser(discordId, cavUser = null) {
     let rankShortName = cavUser.rank_shorthand;
 
     if (cavUser.roster_id == 3) {
-        await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_WOH_ID])
+        await discordProfile.roles.add(
+            [config.MANAGED_GROUPS.GROUP_RETIRED_ID,
+                config.MANAGED_GROUPS.GROUP_WOH_ID]
+                )
             .catch(console.error);
         return;
     }
