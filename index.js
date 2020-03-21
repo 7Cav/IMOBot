@@ -298,7 +298,7 @@ async function syncDiscordUser(discordId, cavUser = null) {
     }
 
     await discordProfile.roles.set(rolesToSet)
-        .catch(logger.warn);
+        .catch(console.error);
 
     console.log(`Finished sync for ${cavUser.username}`);
 }
