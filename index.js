@@ -98,71 +98,99 @@ bot.on('ready', async () => {
     logger.info("Connected as " + bot.user.tag);
 });
 
+// Command prefix:
+const prefix = "!";
 // Message Eventhandler
 bot.on("message", msg => {
-    // Quick command to make sure the bot works and hasen't crashed.
-    if (msg.content.toLowerCase().startsWith("!bot")) {
-        msg.reply("I'm here!");
-    }
+    // Don't let the bot deal with bot commands.
+    if (msg.author.bot) return;
 
-    if(msg.content.toLowerCase().startsWith("!sync")) {
-        logger.info("Sync running for %s", msg.author.username)
-        syncDiscordUser(msg.author.id);
-    }
-
-    if(msg.content.toLowerCase().startsWith("!milpac"))
+    // Commands
+    if(msg.content.startsWith(prefix))
     {
-        let discordProfile = msg.mentions.users.first();
+        // Command Args
+        let messageArray = msg.content.toLowerCase().split(/\s+/g);
+        let command = messageArray[0]
+        let args = messageArray.slice(1);
 
-        if (!discordProfile) {
-            discordProfile = msg.author;
+        // Quick command to make sure the bot works and hasen't crashed.
+        if (msg.content.toLowerCase().startsWith("!imo")) {
+            if(args[0] == 'help')
+            {
+                var help = new Discord.MessageEmbed()
+                    .setColor('#F5CC00')
+                    .setAuthor('7th Cavlary Bot Commands')
+                    .setThumbnail('https://images.7cav.us/7Cav-small.png')
+                    .setTitle('Commands:')
+                    .addField('!imo', 'If there is no reponse, the bot crashed.')
+                    .addField('!imo help', 'Shows you this message.')
+                    .addField('!milpac <args>', 'Gives you a detailed embeded response to a user\'s milpac')
+                    .setTimestamp()
+                msg.channel.send(help)
+                return;
+            }
+            msg.reply("I'm here!");
         }
 
-        getMilpac(discordProfile).then(milpac => {
-            if (milpac == null) {
-                msg.reply("No milpac found");
-                return;
-            } else {
+        if(msg.content.toLowerCase().startsWith("!sync")) {
+            logger.info("Sync running for %s", msg.author.username)
+            syncDiscordUser(msg.author.id);
+        }
 
-                let secondaries = milpac.secondary_positions.map(pos => {
-                    return pos.position_title;
-                });
+        if(msg.content.toLowerCase().startsWith("!milpac"))
+        {
+            let discordProfile = msg.mentions.users.first();
 
-                const exampleEmbed = new Discord.MessageEmbed()
-                    .setColor("#ffcc00")
-                    .setTitle(`${milpac.rank_shorthand} ${milpac.username}`)
-                    .setURL(
-                        `https://7cav.us/rosters/profile?uniqueid=${milpac.milpac_id}`
-                    )
-                    .setAuthor(
-                        `${milpac.rank} ${milpac.real_name}`,
-                        `${milpac.rank_image_url}`
-                    )
-                    .setThumbnail("https://images.7cav.us/7Cav-small.png")
-                    .addFields(
-                        {
-                            name: "Primary Position",
-                            value: `${milpac.primary_position}`
-                        },
-                        {
-                            name: "Secondary Positions",
-                            value: `${
-                                secondaries.length > 0
-                                    ? secondaries.join("\r\n")
-                                    : "N/A"
-                            }`
-                        },
-                        {
-                            name: "Join Date",
-                            value: `${milpac.join_date.split(" ")[0]}`
-                        }
-                    )
-                    .setImage(`${milpac.uniform_url}`)
-                    .setTimestamp()
-                    .setFooter("https://7Cav.us");
-                msg.channel.send(exampleEmbed);
+            if (!discordProfile) {
+                discordProfile = msg.author;
             }
-        });
+
+            getMilpac(discordProfile).then(milpac => {
+                if (milpac == null) {
+                    msg.reply("No milpac found");
+                    return;
+                } else {
+
+                    let secondaries = milpac.secondary_positions.map(pos => {
+                        return pos.position_title;
+                    });
+
+                    const exampleEmbed = new Discord.MessageEmbed()
+                        .setColor("#ffcc00")
+                        .setTitle(`${milpac.rank_shorthand} ${milpac.username}`)
+                        .setURL(
+                            `https://7cav.us/rosters/profile?uniqueid=${milpac.milpac_id}`
+                        )
+                        .setAuthor(
+                            `${milpac.rank} ${milpac.real_name}`,
+                            `${milpac.rank_image_url}`
+                        )
+                        .setThumbnail("https://images.7cav.us/7Cav-small.png")
+                        .addFields(
+                            {
+                                name: "Primary Position",
+                                value: `${milpac.primary_position}`
+                            },
+                            {
+                                name: "Secondary Positions",
+                                value: `${
+                                    secondaries.length > 0
+                                        ? secondaries.join("\r\n")
+                                        : "N/A"
+                                }`
+                            },
+                            {
+                                name: "Join Date",
+                                value: `${milpac.join_date.split(" ")[0]}`
+                            }
+                        )
+                        .setImage(`${milpac.uniform_url}`)
+                        .setTimestamp()
+                        .setFooter("https://7Cav.us");
+                    msg.channel.send(exampleEmbed);
+                }
+            });
+        }
     }
 });
 
