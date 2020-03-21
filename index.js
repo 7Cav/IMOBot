@@ -76,9 +76,41 @@ const instance = axios.create({
 // Concept API call to get updated information from API.
 // Return information from the API and put it into ./data.json
 
-async function getUsers() {
+async function getActiveUsers() {
     try {
         return await instance.get('users/active');
+    } catch (error) {
+        logger.error(error);
+    }
+}
+
+async function getRetUsers() {
+    try {
+        return await instance.get('users/ret');
+    } catch (error) {
+        logger.error(error);
+    }
+}
+
+async function getWohUsers() {
+    try {
+        return await instance.get('users/woh');
+    } catch (error) {
+        logger.error(error);
+    }
+}
+
+async function getResUsers() {
+    try {
+        return await instance.get('users/reserve');
+    } catch (error) {
+        logger.error(error);
+    }
+}
+
+async function getDischUsers() {
+    try {
+        return await instance.get('users/disch');
     } catch (error) {
         logger.error(error);
     }
@@ -133,6 +165,14 @@ bot.on("message", msg => {
         if(msg.content.toLowerCase().startsWith("!sync")) {
             logger.info("Sync running for %s", msg.author.username)
             syncDiscordUser(msg.author.id);
+            msg.react('✅');
+            msg.reply("You're all set");
+        }
+
+        if (msg.content.toLowerCase().startsWith("!jarvis-special-sync")) {
+            logger.info("Sync running for ALL users!");
+            msg.reply("Oh boy.. here we go..");
+            runGlobalSync();
         }
 
         if(msg.content.toLowerCase().startsWith("!milpac"))
@@ -222,6 +262,50 @@ async function getMilpac(discordProfile) {
     }
 }
 
+async function runGlobalSync() {
+    // let [active, ret, disch] = await Promise.all([getActiveUsers(), getRetUsers(), getDischUsers()]);
+
+    getActiveUsers().then(res => {
+        res.data.data.users
+        .filter(user => user.discord_id)
+        .forEach(user => {
+            syncDiscordUser(user.discord_id, user);
+        });
+    });
+
+    getRetUsers().then(res => {
+        res.data.data.users
+            .filter(user => user.discord_id)
+            .forEach(user => {
+                syncDiscordUser(user.discord_id, user);
+            });
+    });
+
+    getWohUsers().then(res => {
+        res.data.data.users
+            .filter(user => user.discord_id)
+            .forEach(user => {
+                syncDiscordUser(user.discord_id, user);
+            });
+    });
+
+    getResUsers().then(res => {
+        res.data.data.users
+            .filter(user => user.discord_id)
+            .forEach(user => {
+                syncDiscordUser(user.discord_id, user);
+            });
+    });
+
+    getDischUsers().then(res => {
+        res.data.data.users
+            .filter(user => user.discord_id)
+            .forEach(user => {
+                syncDiscordUser(user.discord_id, user);
+            });
+    });
+}
+
 async function syncDiscordUser(discordId, cavUser = null) {
 
     if (cavUser == null) {
@@ -234,7 +318,7 @@ async function syncDiscordUser(discordId, cavUser = null) {
         } else {
             logger.info(
                 "No user found on the forums. Skipping %s",
-                discordId
+                discordServer.members.cache.get(discordId).username
             );
             return;
         }
@@ -245,21 +329,39 @@ async function syncDiscordUser(discordId, cavUser = null) {
 
     if (!discordServer.members.cache.has(discordId)) {
         // Skipping user, no discord account found
-        logger.info("No user found in discord. Skipping %s", discordId);
+        logger.info("No user found in discord. Skipping %s", cavUser.username);
         return;
     }
 
     let discordProfile = discordServer.members.cache.get(discordId);
 
+    logger.info(`Starting sync for ${cavUser.username}`);
     await discordProfile.roles.remove(Object.values(config.MANAGED_GROUPS))
-        .catch(logger.warn);
+        .catch(console.error);
+
+    var rolesToSet = [];
 
     let rankShortName = cavUser.rank_shorthand;
+
+    if (cavUser.roster_id == 3) {
+        await discordProfile.roles.add(
+            [config.MANAGED_GROUPS.GROUP_RETIRED_ID,
+                config.MANAGED_GROUPS.GROUP_WOH_ID]
+                )
+            .catch(console.error);
+        return;
+    }
+
+    if (cavUser.roster_id == 8) {
+        await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_RESERVE_ID])
+            .catch(console.error);
+        return;
+    }
 
     if (cavUser.status == 'disch') {
         if (cavUser.primary_position == Roster.RETIRED) {
             await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_RETIRED_ID])
-                .catch(logger.warn);
+                .catch(console.error);
             return;
         }
 
@@ -268,23 +370,21 @@ async function syncDiscordUser(discordId, cavUser = null) {
         // on to the next user
         await discordProfile
             .roles.add([config.MANAGED_GROUPS.GROUP_DISCHARGED_ID])
-            .catch(logger.warn);
+            .catch(console.error);
         return;
     }
 
     // all non discharged members need the active role
-    await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_ACTIVE_ID])
-        .catch(logger.warn);
+    rolesToSet.push(config.MANAGED_GROUPS.GROUP_ACTIVE_ID);
 
     if (ranks.NCO.includes(rankShortName)) {
-        await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_NCO_ID])
-            .catch(logger.warn);
-        return;
+        rolesToSet.push(config.MANAGED_GROUPS.GROUP_NCO_ID);
     }
 
     if (ranks.OFFICER.includes(rankShortName)) {
-        await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_OFFICER_ID])
-            .catch(logger.warn);
-        return;
+        rolesToSet.push(config.MANAGED_GROUPS.GROUP_OFFICER_ID);
     }
+
+    await discordProfile.roles.add(rolesToSet)
+        .catch(console.error);
 }
