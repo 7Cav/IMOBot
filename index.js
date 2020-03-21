@@ -273,7 +273,7 @@ async function syncDiscordUser(discordId, cavUser = null) {
     if (cavUser.status == 'disch') {
         if (cavUser.primary_position == Roster.RETIRED) {
             await discordProfile.roles.set([config.MANAGED_GROUPS.GROUP_RETIRED_ID])
-                .catch(logger.warn);
+                .catch(console.error);
             return;
         }
 
@@ -282,7 +282,7 @@ async function syncDiscordUser(discordId, cavUser = null) {
         // on to the next user
         await discordProfile
             .roles.set([config.MANAGED_GROUPS.GROUP_DISCHARGED_ID])
-            .catch(logger.warn);
+            .catch(console.error);
         return;
     }
 
