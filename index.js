@@ -266,13 +266,16 @@ async function syncDiscordUser(discordId, cavUser = null) {
 
     let discordProfile = discordServer.members.cache.get(discordId);
 
+    await discordProfile.roles.remove(Object.values(config.MANAGED_GROUPS))
+        .catch(logger.warn);
+
     var rolesToSet = [];
 
     let rankShortName = cavUser.rank_shorthand;
 
     if (cavUser.status == 'disch') {
         if (cavUser.primary_position == Roster.RETIRED) {
-            await discordProfile.roles.set([config.MANAGED_GROUPS.GROUP_RETIRED_ID])
+            await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_RETIRED_ID])
                 .catch(console.error);
             return;
         }
@@ -281,7 +284,7 @@ async function syncDiscordUser(discordId, cavUser = null) {
         // what their billet is. Just give them discarged and move
         // on to the next user
         await discordProfile
-            .roles.set([config.MANAGED_GROUPS.GROUP_DISCHARGED_ID])
+            .roles.add([config.MANAGED_GROUPS.GROUP_DISCHARGED_ID])
             .catch(console.error);
         return;
     }
@@ -297,7 +300,7 @@ async function syncDiscordUser(discordId, cavUser = null) {
         rolesToSet.push(config.MANAGED_GROUPS.GROUP_OFFICER_ID);
     }
 
-    await discordProfile.roles.set(rolesToSet)
+    await discordProfile.roles.add(rolesToSet)
         .catch(console.error);
 
     console.log(`Finished sync for ${cavUser.username}`);
