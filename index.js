@@ -115,21 +115,19 @@ bot.on("message", msg => {
 
         // Quick command to make sure the bot works and hasen't crashed.
         if (msg.content.toLowerCase().startsWith("!imo")) {
-            if(args[0] == 'help')
-            {
-                var help = new Discord.MessageEmbed()
-                    .setColor('#F5CC00')
-                    .setAuthor('7th Cavlary Bot Commands')
-                    .setThumbnail('https://images.7cav.us/7Cav-small.png')
-                    .setTitle('Commands:')
-                    .addField('!imo', 'If there is no reponse, the bot crashed.')
-                    .addField('!imo help', 'Shows you this message.')
-                    .addField('!milpac <args>', 'Gives you a detailed embeded response to a user\'s milpac')
-                    .setTimestamp()
-                msg.channel.send(help)
-                return;
-            }
             msg.reply("I'm here!");
+        }
+
+        if(msg.content.toLowerCase().startsWith('!help')) {
+            var help = new Discord.MessageEmbed()
+                .setColor('#F5CC00')
+                .setThumbnail('https://images.7cav.us/7Cav-small.png')
+                .setTitle('Commands:')
+                .addField('!imo', 'If there is no reponse, the bot crashed.')
+                .addField('!help', 'Shows you this message.')
+                .addField('!milpac <args>', 'Gives you a detailed embeded response to a user\'s milpac')
+                .setTimestamp()
+            msg.channel.send(help)
         }
 
         if(msg.content.toLowerCase().startsWith("!sync")) {
