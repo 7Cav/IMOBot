@@ -251,7 +251,7 @@ async function syncDiscordUser(discordId, cavUser = null) {
         } else {
             logger.info(
                 "No user found on the forums. Skipping %s",
-                discordId
+                discordServer.members.cache.get(discordId).username
             );
             return;
         }
@@ -262,7 +262,7 @@ async function syncDiscordUser(discordId, cavUser = null) {
 
     if (!discordServer.members.cache.has(discordId)) {
         // Skipping user, no discord account found
-        logger.info("No user found in discord. Skipping %s", discordId);
+        logger.info("No user found in discord. Skipping %s", cavUser.username);
         return;
     }
 
