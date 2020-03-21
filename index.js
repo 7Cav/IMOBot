@@ -130,17 +130,15 @@ bot.on("message", msg => {
 
                 const exampleEmbed = new Discord.MessageEmbed()
                     .setColor("#ffcc00")
-                    .setTitle(`${milpac.username}`)
+                    .setTitle(`${milpac.rank_shorthand} ${milpac.username}`)
                     .setURL(
                         `https://7cav.us/rosters/profile?uniqueid=${milpac.milpac_id}`
                     )
                     .setAuthor(
-                        `${milpac.real_name}`,
+                        `${milpac.rank} ${milpac.real_name}`,
                         `${milpac.rank_image_url}`
                     )
-                    .setThumbnail(
-                        "https://images.7cav.us/7Cav-small.png"
-                    )
+                    .setThumbnail("https://images.7cav.us/7Cav-small.png")
                     .addFields(
                         {
                             name: "Primary Position",
@@ -148,11 +146,15 @@ bot.on("message", msg => {
                         },
                         {
                             name: "Secondary Positions",
-                            value: `${secondaries.length > 0 ? secondaries.join("\r\n") : "N/A"}`
+                            value: `${
+                                secondaries.length > 0
+                                    ? secondaries.join("\r\n")
+                                    : "N/A"
+                            }`
                         },
                         {
                             name: "Join Date",
-                            value: `${milpac.join_date.split(' ')[0]}`
+                            value: `${milpac.join_date.split(" ")[0]}`
                         }
                     )
                     .setImage(`${milpac.uniform_url}`)
