@@ -112,7 +112,55 @@ bot.on("message", msg => {
 
     if(msg.content.toLowerCase().startsWith("!milpac"))
     {
+        let discordProfile = msg.mentions.users.first();
 
+        if (!discordProfile) {
+            discordProfile = msg.author;
+        }
+
+        getMilpac(discordProfile).then(milpac => {
+            if (milpac == null) {
+                msg.reply("No milpac found");
+                return;
+            } else {
+
+                let secondaries = milpac.secondary_positions.map(pos => {
+                    return pos.position_title;
+                });
+
+                const exampleEmbed = new Discord.MessageEmbed()
+                    .setColor("#ffcc00")
+                    .setTitle(`${milpac.username}`)
+                    .setURL(
+                        `https://7cav.us/rosters/profile?uniqueid=${milpac.milpac_id}`
+                    )
+                    .setAuthor(
+                        `${milpac.real_name}`,
+                        `${milpac.rank_image_url}`
+                    )
+                    .setThumbnail(
+                        "https://images.7cav.us/7Cav-small.png"
+                    )
+                    .addFields(
+                        {
+                            name: "Primary Position",
+                            value: `${milpac.primary_position}`
+                        },
+                        {
+                            name: "Secondary Positions",
+                            value: `${secondaries.length > 0 ? secondaries.join("\r\n") : "N/A"}`
+                        },
+                        {
+                            name: "Join Date",
+                            value: `${milpac.join_date.split(' ')[0]}`
+                        }
+                    )
+                    .setImage(`${milpac.uniform_url}`)
+                    .setTimestamp()
+                    .setFooter("https://7Cav.us");
+                msg.channel.send(exampleEmbed);
+            }
+        });
     }
 });
 
@@ -130,6 +178,21 @@ bot.on("guildMemberAdd", member => {
 //Bot login
 bot.login(botLogin).catch(err => logger.error(err));
 
+async function getMilpac(discordProfile) {
+
+    apiUserRequest = await getUserFromDiscordID(discordProfile.id);
+
+    // if we couldn't find a cav user for the discord id, return
+    if (apiUserRequest.hasOwnProperty("data")) {
+        return apiUserRequest.data.data;
+    } else {
+        logger.info(
+            "No user found on the forums for %s",
+            discordId
+        );
+        return null;
+    }
+}
 
 async function syncDiscordUser(discordId, cavUser = null) {
 
@@ -149,25 +212,25 @@ async function syncDiscordUser(discordId, cavUser = null) {
         }
     }
 
-    let discordServer = bot.guilds.get(config.DiscordServerID);
+    let discordServer = bot.guilds.cache.get(config.DiscordServerID);
 
 
-    if (!discordServer.members.has(discordId)) {
+    if (!discordServer.members.cache.has(discordId)) {
         // Skipping user, no discord account found
         logger.info("No user found in discord. Skipping %s", discordId);
         return;
     }
 
-    let discordProfile = discordServer.members.get(discordId);
+    let discordProfile = discordServer.members.cache.get(discordId);
 
-    await discordProfile.removeRoles(Object.values(config.MANAGED_GROUPS))
+    await discordProfile.roles.remove(Object.values(config.MANAGED_GROUPS))
         .catch(logger.warn);
 
     let rankShortName = cavUser.rank_shorthand;
 
     if (cavUser.status == 'disch') {
         if (cavUser.primary_position == Roster.RETIRED) {
-            await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_RETIRED_ID])
+            await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_RETIRED_ID])
                 .catch(logger.warn);
             return;
         }
@@ -176,23 +239,23 @@ async function syncDiscordUser(discordId, cavUser = null) {
         // what their billet is. Just give them discarged and move
         // on to the next user
         await discordProfile
-            .addRoles([config.MANAGED_GROUPS.GROUP_DISCHARGED_ID])
+            .roles.add([config.MANAGED_GROUPS.GROUP_DISCHARGED_ID])
             .catch(logger.warn);
         return;
     }
 
     // all non discharged members need the active role
-    await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_ACTIVE_ID])
+    await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_ACTIVE_ID])
         .catch(logger.warn);
 
     if (ranks.NCO.includes(rankShortName)) {
-        await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_NCO_ID])
+        await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_NCO_ID])
             .catch(logger.warn);
         return;
     }
 
     if (ranks.OFFICER.includes(rankShortName)) {
-        await discordProfile.addRoles([config.MANAGED_GROUPS.GROUP_OFFICER_ID])
+        await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_OFFICER_ID])
             .catch(logger.warn);
         return;
     }
