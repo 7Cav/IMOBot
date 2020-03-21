@@ -266,14 +266,13 @@ async function syncDiscordUser(discordId, cavUser = null) {
 
     let discordProfile = discordServer.members.cache.get(discordId);
 
-    await discordProfile.roles.remove(Object.values(config.MANAGED_GROUPS))
-        .catch(logger.warn);
+    var rolesToSet = [];
 
     let rankShortName = cavUser.rank_shorthand;
 
     if (cavUser.status == 'disch') {
         if (cavUser.primary_position == Roster.RETIRED) {
-            await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_RETIRED_ID])
+            await discordProfile.roles.set([config.MANAGED_GROUPS.GROUP_RETIRED_ID])
                 .catch(logger.warn);
             return;
         }
@@ -282,24 +281,24 @@ async function syncDiscordUser(discordId, cavUser = null) {
         // what their billet is. Just give them discarged and move
         // on to the next user
         await discordProfile
-            .roles.add([config.MANAGED_GROUPS.GROUP_DISCHARGED_ID])
+            .roles.set([config.MANAGED_GROUPS.GROUP_DISCHARGED_ID])
             .catch(logger.warn);
         return;
     }
 
     // all non discharged members need the active role
-    await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_ACTIVE_ID])
-        .catch(logger.warn);
+    rolesToSet.push(config.MANAGED_GROUPS.GROUP_ACTIVE_ID);
 
     if (ranks.NCO.includes(rankShortName)) {
-        await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_NCO_ID])
-            .catch(logger.warn);
-        return;
+        rolesToSet.push(config.MANAGED_GROUPS.GROUP_NCO_ID);
     }
 
     if (ranks.OFFICER.includes(rankShortName)) {
-        await discordProfile.roles.add([config.MANAGED_GROUPS.GROUP_OFFICER_ID])
-            .catch(logger.warn);
-        return;
+        rolesToSet.push(config.MANAGED_GROUPS.GROUP_OFFICER_ID);
     }
+
+    await discordProfile.roles.set(rolesToSet)
+        .catch(logger.warn);
+
+    logger.info("Finished sync for %s", cavUser.username);
 }
