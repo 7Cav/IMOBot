@@ -3,6 +3,7 @@ Description=Nodejs Discord bot
 
 [Service]
 ExecStartPre=/usr/bin/git pull
+ExecStartPre=/usr/bin/npm install
 ExecStart=/usr/bin/node /opt/IMOBot/index.js
 WorkingDirectory=/opt/IMOBot
 Restart=always
