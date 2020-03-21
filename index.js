@@ -169,7 +169,8 @@ bot.on("message", msg => {
             msg.reply("You're all set");
         }
 
-        if (msg.content.toLowerCase().startsWith("!jarvis-special-sync")) {
+        var JarvisOnly = '104461066662060032';
+        if (msg.content.toLowerCase().startsWith("!jarvis-special-sync") && msg.author.id == JarvisOnly) {
             logger.info("Sync running for ALL users!");
             msg.reply("Oh boy.. here we go..");
             runGlobalSync();
