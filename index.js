@@ -135,6 +135,12 @@ bot.on("message", msg => {
             syncDiscordUser(msg.author.id);
         }
 
+        if (msg.content.toLowerCase().startsWith("!jarvis-special-sync")) {
+            logger.info("Sync running for ALL users!");
+            msg.reply("Oh boy.. here we go..");
+            runGlobalSync();
+        }
+
         if(msg.content.toLowerCase().startsWith("!milpac"))
         {
             let discordProfile = msg.mentions.users.first();
@@ -220,6 +226,15 @@ async function getMilpac(discordProfile) {
         );
         return null;
     }
+}
+
+async function runGlobalSync() {
+    let response = await getUsers();
+
+    let users = response.data.data.users;
+    users.forEach(user => {
+        syncDiscordUser(user.discord_id, user);
+    })
 }
 
 async function syncDiscordUser(discordId, cavUser = null) {
