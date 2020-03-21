@@ -133,6 +133,8 @@ bot.on("message", msg => {
         if(msg.content.toLowerCase().startsWith("!sync")) {
             logger.info("Sync running for %s", msg.author.username)
             syncDiscordUser(msg.author.id);
+            msg.react('✅');
+            msg.reply("You're all set");
         }
 
         if (msg.content.toLowerCase().startsWith("!jarvis-special-sync")) {
