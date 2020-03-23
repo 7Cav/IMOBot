@@ -52,6 +52,7 @@ fs.readdir('./ChatCmds/', (err, files) => {
 })
 
 // ******* START OF API STUFF *******
+//#region 
 // Axios and Cav API
 const AUTH_TOKEN = config.CavAPIToken;
 const axios = require('axios').default;
@@ -72,7 +73,7 @@ async function getActiveUsers() {
     try {
         return await instance.get('users/active');
     } catch (error) {
-        logger.error(error);
+        //logger.error(error);
     }
 }
 
@@ -81,7 +82,7 @@ async function getRetUsers() {
     try {
         return await instance.get('users/ret');
     } catch (error) {
-        logger.error(error);
+        //logger.error(error);
     }
 }
 
@@ -90,7 +91,7 @@ async function getWohUsers() {
     try {
         return await instance.get('users/woh');
     } catch (error) {
-        logger.error(error);
+        //logger.error(error);
     }
 }
 
@@ -99,7 +100,7 @@ async function getResUsers() {
     try {
         return await instance.get('users/reserve');
     } catch (error) {
-        logger.error(error);
+        //logger.error(error);
     }
 }
 
@@ -108,7 +109,7 @@ async function getDischUsers() {
     try {
         return await instance.get('users/disch');
     } catch (error) {
-        logger.error(error);
+        //logger.error(error);
     }
 }
 
@@ -117,9 +118,10 @@ async function getUserFromDiscordID(discordId) {
     try {
         return await instance.get('user/discord/' + discordId);
     } catch (error) {
-        logger.error(error);
+       // logger.error(error);
     }
 }
+//#endregion
 // ******* END OF API STUFF *******
 
 //When the bot is ready.
@@ -164,9 +166,18 @@ bot.on("message", msg => {
         // Sync command to sync the user who called it.
         if(msg.content.toLowerCase().startsWith("!sync")) {
             logger.info("Sync running for %s", msg.author.username)
-            syncDiscordUser(msg.author.id);
-            msg.react('✅');
-            msg.reply("You're all set");
+            var syncOrNot = syncDiscordUser(msg.author.id);
+
+            if(syncOrNot == true)
+            {
+                msg.react('✅');
+                msg.reply("You're all set");
+            } else {
+                msg.react('🚫');
+                msg.reply('Your sync failed. Make sure your discord profile is synced with our forums: https://7cav.us/discord\n'
+                + 'If your discord profile is synced but you are not a member of the 7th Cavalry. Your profile will not sync (yet).\n'
+                + 'Feel free to join us at https://7cav.us/enlist');
+            }
         }
 
         // Jarvis's Discord ID.
@@ -266,7 +277,7 @@ async function getMilpac(discordProfile) {
     } else {
         logger.info(
             "No user found on the forums for %s",
-            discordId
+            //discordId
         );
         return null;
     }
@@ -320,33 +331,37 @@ async function runGlobalSync() {
 // Sync Discord User function
 async function syncDiscordUser(discordId, cavUser = null) {
 
+    var successfulSync = false;
+    let discordServer = bot.guilds.cache.get(config.DiscordServerID);// Discord server...
+    let discordProfile = discordServer.members.cache.get(discordId); // Discord profile...
+
+    // #region Sync Checking
     if (cavUser == null) {
         // attempt to get Cav User via api/user/discord/{id}
         apiUserRequest = await getUserFromDiscordID(discordId);
 
-        // if we couldn't find a cav user for the discord id, return
-        if (apiUserRequest.hasOwnProperty('data')) {
-            cavUser = apiUserRequest.data.data;
+        if(apiUserRequest != null){
+            // if we couldn't find a cav user for the discord id, return
+            if (apiUserRequest.hasOwnProperty('data')) {
+                cavUser = apiUserRequest.data.data;
+                successfulSync = true;
+            }
         } else {
             logger.info(
                 "No user found on the forums. Skipping %s",
                 discordServer.members.cache.get(discordId).username
             );
-            return;
+            return successfulSync;
         }
     }
-
-    // Discord server...
-    let discordServer = bot.guilds.cache.get(config.DiscordServerID);
 
     if (!discordServer.members.cache.has(discordId)) {
         // Skipping user, no discord account found
         logger.info("No user found in discord. Skipping %s", cavUser.username);
-        return;
+        return successfulSync;
     }
-
-    // Discord profile...
-    let discordProfile = discordServer.members.cache.get(discordId);
+    //#endregion 
+    // End of Sync Check
 
     logger.info(`Starting sync for ${cavUser.username}`);
     await discordProfile.roles.remove(Object.values(config.MANAGED_GROUPS))
