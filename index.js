@@ -4,18 +4,21 @@
     Made by Vex
 */
 
-// Dependencies
+// Libraries
 const Discord = require('discord.js');
 const pino = require("pino");
+const fs = require("fs");
 
-
+// Configs
 var config = require('./config/main.json');
 var billet = require('./config/billet.json');
 var ranks = require('./config/ranks.json');
-const fs = require("fs");
+
+// Bot initialilzation
 const bot = new Discord.Client();
 const botLogin = config.BotToken;
 
+// Logging
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 
 // Crash reporting
@@ -24,14 +27,16 @@ bot.on('reconnecting', () => logger.info('Attempting to reconnect....'));
 bot.on('error', error => logger.error(error));
 bot.on('warn', info => logger.error(info));
 
+// Roster
 const Roster = {
     RETIRED: 'Retired',
-    DISCHARGED: 'Dischargedf'
+    DISCHARGED: 'Discharged'
 };
 
-
-// Chat Commands:
+// Chat Command collection
 bot.commands = new Discord.Collection();
+
+// Get all exported chat commands.
 fs.readdir('./ChatCmds/', (err, files) => {
     if(err) console.error(err);
 
@@ -51,7 +56,7 @@ fs.readdir('./ChatCmds/', (err, files) => {
 const AUTH_TOKEN = config.CavAPIToken;
 const axios = require('axios').default;
 
-// active members.
+// Base Cav API call.
 const instance = axios.create({
     baseURL: 'https://api.7cav.us/v1/',
     withCredentials: false,
@@ -62,20 +67,7 @@ const instance = axios.create({
     }
 });
 
-// This is to append to the API call.
-// instance += axios.create({
-//     baseURL: 'https://api.7cav.us/v1/users/ret',
-//     withCredentials: false,
-//     headers: {
-//         'Accept': 'application/json',
-//         'Content-Type': 'application/json',
-//         'Authorization': "Bearer " + AUTH_TOKEN
-//     }
-// })
-
-// Concept API call to get updated information from API.
-// Return information from the API and put it into ./data.json
-
+// Get Active users of Cav API.
 async function getActiveUsers() {
     try {
         return await instance.get('users/active');
@@ -84,6 +76,7 @@ async function getActiveUsers() {
     }
 }
 
+// Get Retired users of Cav API.
 async function getRetUsers() {
     try {
         return await instance.get('users/ret');
@@ -92,6 +85,7 @@ async function getRetUsers() {
     }
 }
 
+// Get Wall of Honor users of Cav API.
 async function getWohUsers() {
     try {
         return await instance.get('users/woh');
@@ -100,6 +94,7 @@ async function getWohUsers() {
     }
 }
 
+// Get Reserve users of Cav API.
 async function getResUsers() {
     try {
         return await instance.get('users/reserve');
@@ -108,6 +103,7 @@ async function getResUsers() {
     }
 }
 
+// Get Discharged users of Cav API.
 async function getDischUsers() {
     try {
         return await instance.get('users/disch');
@@ -116,6 +112,7 @@ async function getDischUsers() {
     }
 }
 
+// Get Cav API user via Discord Id.
 async function getUserFromDiscordID(discordId) {
     try {
         return await instance.get('user/discord/' + discordId);
@@ -132,6 +129,7 @@ bot.on('ready', async () => {
 
 // Command prefix:
 const prefix = "!";
+
 // Message Eventhandler
 bot.on("message", msg => {
     // Don't let the bot deal with bot commands.
@@ -145,11 +143,12 @@ bot.on("message", msg => {
         let command = messageArray[0]
         let args = messageArray.slice(1);
 
-        // Quick command to make sure the bot works and hasen't crashed.
+        // Quick command to make sure the bot is responsive.
         if (msg.content.toLowerCase().startsWith("!imo")) {
             msg.reply("I'm here!");
         }
 
+        // Help command to display all commands for this bot.
         if(msg.content.toLowerCase().startsWith('!help')) {
             var help = new Discord.MessageEmbed()
                 .setColor('#F5CC00')
@@ -162,6 +161,7 @@ bot.on("message", msg => {
             msg.channel.send(help)
         }
 
+        // Sync command to sync the user who called it.
         if(msg.content.toLowerCase().startsWith("!sync")) {
             logger.info("Sync running for %s", msg.author.username)
             syncDiscordUser(msg.author.id);
@@ -169,13 +169,17 @@ bot.on("message", msg => {
             msg.reply("You're all set");
         }
 
+        // Jarvis's Discord ID.
         var JarvisOnly = '104461066662060032';
+
+        // Jarvis's discord command for syncing all users inside the discord.
         if (msg.content.toLowerCase().startsWith("!jarvis-special-sync") && msg.author.id == JarvisOnly) {
             logger.info("Sync running for ALL users!");
             msg.reply("Oh boy.. here we go..");
             runGlobalSync();
         }
 
+        // Milpac command, returns milpac info of user in args else user who called command.
         if(msg.content.toLowerCase().startsWith("!milpac"))
         {
             let discordProfile = msg.mentions.users.first();
@@ -233,11 +237,15 @@ bot.on("message", msg => {
     }
 });
 
+// Rate limit event handler.
 bot.on("rateLimit", info => {
+    
+    // When the rate limit hits its max per second (2)
     logger.warn("hit rate limt");
     setTimeout(() => true, 500);
 })
 
+// User joins discord event.
 bot.on("guildMemberAdd", member => {
     var id = member.id;
     //joinSync.run(userCache, id);
@@ -247,6 +255,7 @@ bot.on("guildMemberAdd", member => {
 //Bot login
 bot.login(botLogin).catch(err => logger.error(err));
 
+// getMilpac Function
 async function getMilpac(discordProfile) {
 
     apiUserRequest = await getUserFromDiscordID(discordProfile.id);
@@ -263,6 +272,7 @@ async function getMilpac(discordProfile) {
     }
 }
 
+// Global Sync function
 async function runGlobalSync() {
     // let [active, ret, disch] = await Promise.all([getActiveUsers(), getRetUsers(), getDischUsers()]);
 
@@ -307,6 +317,7 @@ async function runGlobalSync() {
     });
 }
 
+// Sync Discord User function
 async function syncDiscordUser(discordId, cavUser = null) {
 
     if (cavUser == null) {
@@ -325,8 +336,8 @@ async function syncDiscordUser(discordId, cavUser = null) {
         }
     }
 
+    // Discord server...
     let discordServer = bot.guilds.cache.get(config.DiscordServerID);
-
 
     if (!discordServer.members.cache.has(discordId)) {
         // Skipping user, no discord account found
@@ -334,6 +345,7 @@ async function syncDiscordUser(discordId, cavUser = null) {
         return;
     }
 
+    // Discord profile...
     let discordProfile = discordServer.members.cache.get(discordId);
 
     logger.info(`Starting sync for ${cavUser.username}`);
