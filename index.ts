@@ -33,10 +33,10 @@ const Roster = {
 // Chat Commands:
 bot.commands = new Discord.Collection();
 fs.readdir('./ChatCmds/', (err, files) => {
-    if(err) console.error(err);
+    if (err) console.error(err);
 
     let jsfiles = files.filter(f => f.split(".").pop() === 'js');
-    if(jsfiles.length <= 0) return logger.info("No commands!");
+    if (jsfiles.length <= 0) return logger.info("No commands!");
     logger.info(`Loading ${jsfiles.length} methods!`);
 
     jsfiles.forEach((f, i) => {
@@ -138,8 +138,7 @@ bot.on("message", msg => {
     if (msg.author.bot) return;
 
     // Commands
-    if(msg.content.startsWith(prefix))
-    {
+    if (msg.content.startsWith(prefix)) {
         // Command Args
         let messageArray = msg.content.toLowerCase().split(/\s+/g);
         let command = messageArray[0]
@@ -150,7 +149,7 @@ bot.on("message", msg => {
             msg.reply("I'm here!");
         }
 
-        if(msg.content.toLowerCase().startsWith('!help')) {
+        if (msg.content.toLowerCase().startsWith('!help')) {
             var help = new Discord.MessageEmbed()
                 .setColor('#F5CC00')
                 .setThumbnail('https://images.7cav.us/7Cav-small.png')
@@ -162,7 +161,7 @@ bot.on("message", msg => {
             msg.channel.send(help)
         }
 
-        if(msg.content.toLowerCase().startsWith("!sync")) {
+        if (msg.content.toLowerCase().startsWith("!sync")) {
             logger.info("Sync running for %s", msg.author.username)
             syncDiscordUser(msg.author.id);
             msg.react('✅');
@@ -176,8 +175,7 @@ bot.on("message", msg => {
             runGlobalSync();
         }
 
-        if(msg.content.toLowerCase().startsWith("!milpac"))
-        {
+        if (msg.content.toLowerCase().startsWith("!milpac")) {
             let discordProfile = msg.mentions.users.first();
 
             if (!discordProfile) {
@@ -216,7 +214,7 @@ bot.on("message", msg => {
                                     secondaries.length > 0
                                         ? secondaries.join("\r\n")
                                         : "N/A"
-                                }`
+                                    }`
                             },
                             {
                                 name: "Join Date",
@@ -249,7 +247,7 @@ bot.login(botLogin).catch(err => logger.error(err));
 
 async function getMilpac(discordProfile) {
 
-    apiUserRequest = await getUserFromDiscordID(discordProfile.id);
+    let apiUserRequest = await getUserFromDiscordID(discordProfile.id);
 
     // if we couldn't find a cav user for the discord id, return
     if (apiUserRequest.hasOwnProperty("data")) {
@@ -257,7 +255,7 @@ async function getMilpac(discordProfile) {
     } else {
         logger.info(
             "No user found on the forums for %s",
-            discordId
+            discordProfile.id
         );
         return null;
     }
@@ -268,10 +266,10 @@ async function runGlobalSync() {
 
     getActiveUsers().then(res => {
         res.data.data.users
-        .filter(user => user.discord_id)
-        .forEach(user => {
-            syncDiscordUser(user.discord_id, user);
-        });
+            .filter(user => user.discord_id)
+            .forEach(user => {
+                syncDiscordUser(user.discord_id, user);
+            });
     });
 
     getRetUsers().then(res => {
@@ -309,6 +307,10 @@ async function runGlobalSync() {
 
 async function syncDiscordUser(discordId, cavUser = null) {
 
+    let discordServer = bot.guilds.cache.get(config.DiscordServerID);
+
+    var apiUserRequest;
+
     if (cavUser == null) {
         // attempt to get Cav User via api/user/discord/{id}
         apiUserRequest = await getUserFromDiscordID(discordId);
@@ -324,8 +326,6 @@ async function syncDiscordUser(discordId, cavUser = null) {
             return;
         }
     }
-
-    let discordServer = bot.guilds.cache.get(config.DiscordServerID);
 
 
     if (!discordServer.members.cache.has(discordId)) {
@@ -347,8 +347,8 @@ async function syncDiscordUser(discordId, cavUser = null) {
     if (cavUser.roster_id == 3) {
         await discordProfile.roles.add(
             [config.MANAGED_GROUPS.GROUP_RETIRED_ID,
-                config.MANAGED_GROUPS.GROUP_WOH_ID]
-                )
+            config.MANAGED_GROUPS.GROUP_WOH_ID]
+        )
             .catch(console.error);
         return;
     }
