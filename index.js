@@ -11,7 +11,6 @@ const fs = require("fs");
 
 // Configs
 var config = require('./config/main.json');
-var billet = require('./config/billet.json');
 var ranks = require('./config/ranks.json');
 
 // Bot initialilzation
@@ -156,7 +155,7 @@ bot.on("message", msg => {
                 .setColor('#F5CC00')
                 .setThumbnail('https://images.7cav.us/7Cav-small.png')
                 .setTitle('Commands:')
-                .addField('!imo', 'If there is no reponse, the bot crashed.')
+                .addField('!imo', 'If there is no reponse, then @Jarvis')
                 .addField('!help', 'Shows you this message.')
                 .addField('!milpac <args>', 'Gives you a detailed embeded response to a user\'s milpac')
                 .setTimestamp()
