@@ -408,17 +408,18 @@ async function syncDiscordUser(discordId, cavUser = null) {
 
 bot.on('raw', event => {
     const eventName = event.t;
+    var reactionChannel = bot.channels.get(event.d.channel_id);
+    var msgReaction = msg.reactions.get(event.d.emoji.name + ":" + event.d.emoji.id);
+    var user = bot.users.get(event.d.user_id);
 
     if(eventName === 'MESSAGE_REACTION_ADD') {
         if(event.d.message_id === cfg.React.message_id) {
-            var reactionChannel = bot.channels.get(event.d.channel_id);
+            
             if(reactionChannel.messages.has(event.d.message_id)) {
                 return;
             } else {
                 reactionChannel.fetchMessage(event.d.message_id)
                 .then(msg => {
-                    var msgReaction = msg.reactions.get(event.d.emoji.name + ":" + event.d.emoji.id);
-                    var user = bot.users.get(event.d.user_id);
                     bot.emit('messageReactionAdd', msgReaction, user);
                 })
                 .catch(err => console.log(err));
@@ -434,8 +435,6 @@ bot.on('raw', event => {
             else {
                 reactionChannel.fetchMessage(event.d.message_id)
                 .then(msg => {
-                    var msgReaction = msg.reactions.get(event.d.emoji.name + ":" + event.d.emoji.id);
-                    var user = bot.users.get(event.d.user_id);
                     bot.emit('messageReactionRemove', msgReaction, user);
                 })
                 .catch(err => console.log(err));
