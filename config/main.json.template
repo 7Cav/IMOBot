@@ -11,5 +11,8 @@
             "GROUP_DISCHARGED_ID": "",
             "GROUP_WOH_ID": "",
             "GROUP_RESERVE_ID": ""
+        },
+        "React" : {
+            "message_id" : ""
         }
 }
